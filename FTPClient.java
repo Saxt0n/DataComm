@@ -45,13 +45,14 @@ class FTPClient {
                 if (sentence.equals("list")) {
 
                     port = port + 2;
+		    System.out.println(port);
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-                    try {
+
                         ServerSocket welcomeData = new ServerSocket(port);
                         Socket dataSocket = welcomeData.accept();
-
+			
                         DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
-                        while (notEnd) {
+                        while (inData.available() > 0) {
                             modifiedSentence = inData.readUTF();
                             System.out.println("Listing Files: ");
                             System.out.println(modifiedSentence);
@@ -61,9 +62,6 @@ class FTPClient {
                         dataSocket.close();
                         System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || close");
 
-                    } catch (Exception e) {
-                        System.out.println("Something went wrong");
-                    }
                 } else if (sentence.startsWith("retr: ")) {
                     //testing list
                     isOpen = false;

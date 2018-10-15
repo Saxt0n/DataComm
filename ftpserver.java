@@ -6,7 +6,7 @@ import java.util.*;
 class FTPServer {
 
     public static void main(String args[]) throws Exception{
-        try {
+        
         String fromClient;
         String clientCommand;
         byte[] data;
@@ -15,12 +15,12 @@ class FTPServer {
         int port;
 
 
-        while (true) {
+
             Socket connectionSocket = welcomeSocket.accept();
             DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 
-
+        while (true) {
             fromClient = inFromClient.readLine();
             StringTokenizer tokens = new StringTokenizer(fromClient);
             frstln = tokens.nextToken();
@@ -30,7 +30,7 @@ class FTPServer {
 
             if (clientCommand.equals("list")) {
                 System.out.println("Listing files...");
-                port = port + 2;
+		System.out.println(port);
                 Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 
                 System.out.println("Data Socket opened.");
@@ -42,29 +42,31 @@ class FTPServer {
                 File[] listOfFiles = folder.listFiles();  //this object contains all files AND folders in the current directory
 
                 /* Iterate through and add the name to the list only if the file object is indeed a file (not a directory) */
-                for (File file : listOfFiles) {
-                    if (file.isFile()) {
+               if (fileList.length() != 0) {  
+		    for (File file : listOfFiles) {
+                    	if (file.isFile()) {
                         fileList += file.getName() + ", ";
-                    }
-                }
+                    	}
+                	}
 
                     /* If the list of files isn't empty, then trim the last ", " off the list */
-                if (fileList.length() != 0) {
-                    fileList = fileList.substring(0, fileList.length() - 2);
-                }
+                    if (fileList.length() != 0) {
+                    	fileList = fileList.substring(0, fileList.length() - 2);
+                	}
 
                     /* Send list to client */
-                dataOutToClient.writeBytes(fileList);
-                dataSocket.close();
-
+                    dataOutToClient.writeBytes(fileList);
+                    dataSocket.close();
+		}
+	       else {
+		   System.out.print("file list is empty");
+		}
             }
 
 
             System.out.println("Data Socket closed");
         }
-        } catch (Exception e) {
-            System.out.println("Something went wrong");
-        }
+       
 //
 //			.................
 //                    if(clientCommand.equals("retr:")) {
