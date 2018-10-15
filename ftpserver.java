@@ -1,52 +1,75 @@
 import java.io.*; 
 import java.net.*;
 import java.util.*;
-.................
-.................
 
-    
-	
-            String fromClient;
-            String clientCommand;
-            byte[] data;
-            
-        
-            ServerSocket welcomeSocket = new ServerSocket(12000);
-            String frstln;
-          
-            while(true)
-            {
-                Socket connectionSocket = welcomeSocket.accept();
-                      
-                DataOutputStream  outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-                BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            
-                  fromClient = inFromClient.readLine();
-                 
-                  StringTokenizer tokens = new StringTokenizer(fromClient);
-                  frstln = tokens.nextToken();
-                  port = Integer.parseInt(frstln);
-                  clientCommand = tokens.nextToken();
-                  
-                  if(clientCommand.equals("list:"))
-                  { 
-                             
-                      Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-                      DataOutputStream  dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-                      ..........................
 
-     
-                          }
+class FTPServer {
 
-                           dataSocket.close();
-			   System.out.println("Data Socket closed");
-                     }
-        
-			......................
-             
-                if(clientCommand.equals("retr:"))
-                {
-                ..............................
-		..............................
-		 }
-    
+    public static void main(String args[]) throws Exception{
+        try {
+        String fromClient;
+        String clientCommand;
+        byte[] data;
+        ServerSocket welcomeSocket = new ServerSocket(12000);
+        String frstln;
+        int port;
+
+
+        while (true) {
+            Socket connectionSocket = welcomeSocket.accept();
+            DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+
+
+            fromClient = inFromClient.readLine();
+            StringTokenizer tokens = new StringTokenizer(fromClient);
+            frstln = tokens.nextToken();
+            port = Integer.parseInt(frstln);
+            clientCommand = tokens.nextToken();
+
+
+            if (clientCommand.equals("list")) {
+                System.out.println("Listing files...");
+                port = port + 2;
+                Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+
+                System.out.println("Data Socket opened.");
+
+                DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+                BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+                String fileList = "";
+                File folder = new File(".");  //the folder for this process
+                File[] listOfFiles = folder.listFiles();  //this object contains all files AND folders in the current directory
+
+                /* Iterate through and add the name to the list only if the file object is indeed a file (not a directory) */
+                for (File file : listOfFiles) {
+                    if (file.isFile()) {
+                        fileList += file.getName() + ", ";
+                    }
+                }
+
+                    /* If the list of files isn't empty, then trim the last ", " off the list */
+                if (fileList.length() != 0) {
+                    fileList = fileList.substring(0, fileList.length() - 2);
+                }
+
+                    /* Send list to client */
+                dataOutToClient.writeBytes(fileList);
+                dataSocket.close();
+
+            }
+
+
+            System.out.println("Data Socket closed");
+        }
+        } catch (Exception e) {
+            System.out.println("Something went wrong");
+        }
+//
+//			.................
+//                    if(clientCommand.equals("retr:")) {
+//
+//
+//			}
+    }
+}
