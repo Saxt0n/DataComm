@@ -45,26 +45,35 @@ class FTPClient {
                 if (sentence.equals("list")) {
 
                     port = port + 2;
-		    System.out.println(port);
+		            System.out.println(port);
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
+                    ServerSocket welcomeData = new ServerSocket(port);
+                    Socket dataSocket = welcomeData.accept();
 
-                        ServerSocket welcomeData = new ServerSocket(port);
-                        Socket dataSocket = welcomeData.accept();
-			
-                        DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
-                        while (inData.available() > 0) {
-                            modifiedSentence = inData.readUTF();
-                            System.out.println("Listing Files: ");
-                            System.out.println(modifiedSentence);
-                        }
+                    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
-                        welcomeData.close();
-                        dataSocket.close();
-                        System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || close");
+                    System.out.println("There is data to read");
+                    modifiedSentence = inData.readLine();
+                    System.out.println("Listing Files: ");
+                    System.out.println(modifiedSentence);
 
-                } else if (sentence.startsWith("retr: ")) {
-                    //testing list
-                    isOpen = false;
+                    welcomeData.close();
+                    dataSocket.close();
+                    System.out.println("\nWhat would you like to do next? \n list || retr: file.txt || stor: file.txt || close");
+
+                } else if (sentence.startsWith("retr:")) {
+                    StringTokenizer tokens2 = new StringTokenizer(sentence);
+                    tokens2.nextToken();
+                    String filename = tokens2.nextToken();
+
+                    port = port + 2;
+                    System.out.println(port);
+                    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+                    ServerSocket welcomeData = new ServerSocket(port);
+                    Socket dataSocket = welcomeData.accept();
+
+                    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+
                 }
             }
             ControlSocket.close();
