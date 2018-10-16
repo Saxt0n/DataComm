@@ -7,75 +7,125 @@ import javax.swing.*;
 class FTPClient {
 
     public static void main(String argv[]) throws Exception {
-        String sentence;
-        String modifiedSentence;
-        boolean isOpen = true;
-        int number = 1;
-        boolean notEnd = true;
-        String statusCode;
-        boolean clientgo = true;
-        int port = 12000;
+	String sentence;
+	String modifiedSentence = "";
+	boolean isOpen = true;
+	int number = 1;
+	boolean notEnd = true;
+	String statusCode;
+	boolean clientgo = true;
+	int port = 12000;
+	String serverName;
+	int connectPort;
+	Socket ControlSocket = null;
+	
+	BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+	System.out.println("To connect to server, enter \"connect\" followed by the server's IP and port.");
 
+	sentence = inFromUser.readLine();
+	StringTokenizer tokens = new StringTokenizer(sentence);
 
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+	if(sentence.startsWith("connect ")) {
+	    serverName = tokens.nextToken(); //passes connect command
+	    serverName = tokens.nextToken();
+	    connectPort = Integer.parseInt(tokens.nextToken());
 
-        System.out.println("To connect to server, enter \"connect\" followed by the server's IP and port.");
+	    try
+		{
+		    ControlSocket = new Socket(serverName, connectPort);
 
-        sentence = inFromUser.readLine();
-        StringTokenizer tokens = new StringTokenizer(sentence);
+		    System.out.println("You are now connected to " + serverName);
+		    System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || quit");
 
+		    do {
+			DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
-        if (sentence.startsWith("connect")) {
-            String serverName = tokens.nextToken(); // pass the connect command
-            serverName = tokens.nextToken();
-            int port1 = Integer.parseInt(tokens.nextToken());
-            System.out.println("You are connected to " + serverName);
+			DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
 
-            Socket ControlSocket = new Socket(serverName, port1);
+			sentence = inFromUser.readLine();
 
-            System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || quit");
+			if (sentence.equals("list")) {
+			    port = port + 2;
+			    System.out.println(port);
+			    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+			    ServerSocket welcomeData = new ServerSocket(port);
+			    Socket dataSocket = welcomeData.accept();
 
-            while (isOpen && clientgo) {
-                DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
+			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
-                DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
+			    System.out.println("There is data to read");
+			    //modifiedSentence = inData.readLine();
+			    System.out.println("Listing Files: ");
+			    System.out.println(modifiedSentence);
 
-                sentence = inFromUser.readLine();
+			    welcomeData.close();
+			    dataSocket.close();
+			    System.out.println("\nWhat would you like to do next? \n list || retr: file.txt || stor: file.txt || close");
 
-                if (sentence.equals("list")) {
+			} else if (sentence.startsWith("retr ")) {
+			    StringTokenizer tokens2 = new StringTokenizer(sentence);
+			    tokens2.nextToken();
+			    String filename = tokens2.nextToken();
 
-                    port = port + 2;
-		    System.out.println(port);
-                    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+			    port = port + 2;
+			    System.out.println(port);
+			    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+			    ServerSocket welcomeData = new ServerSocket(port);
+			    Socket dataSocket = welcomeData.accept();
 
-                        ServerSocket welcomeData = new ServerSocket(port);
-                        Socket dataSocket = welcomeData.accept();
-			
-                        DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
-                        while (inData.available() > 0) {
-                            modifiedSentence = inData.readUTF();
-                            System.out.println("Listing Files: ");
-                            System.out.println(modifiedSentence);
-                        }
+			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
-                        welcomeData.close();
-                        dataSocket.close();
-                        System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
+	        	} else if (sentence.startsWith("stor ")) {
+			    // FTPClient client = new FTPClient();
+			    //FileInputStream fis = null;
+			    //try {
+				//
+				// Create an InputStream of the file to be uploaded
+				//
+				//System.out.println("Enter your filename: ");
+				//Scanner sc = new Scanner(System.in);
+				//String filename =sc.next();
+				//fis = new FileInputStream(filename);
 
-                } else if (sentence.startsWith("retr ")) {
-                    //testing list
-                    isOpen = false;
-		    System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
-                } else if (sentence.startsWith("stor ")) {
-		    
-		    System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
-		} else if (sentence.equals("quit")) {
-		    outToServer.writeBytes(port + " " + sentence + " " + '\n');
-		    isOpen = false;
+				//
+				// Store file to server
+				//
+				//client.storeFile(filename, fis);
+			    //} catch (IOException e) {
+				//e.printStackTrace();
+			    // } finally {
+			    //try {
+			    //if (fis != null) {
+			    //	fis.close();
+					//}
+			    //} catch (IOException e) {
+			    // e.printStackTrace();
+			    //}
+			    //}
+			}
+		    } while (isOpen);
 		}
-	 
-            }
-            ControlSocket.close();
-        }
+	    catch (IOException ioEx)
+		{
+		    ioEx.printStackTrace();
+		}
+	    finally
+		{
+		    try
+			{
+			    System.out.println("\nClosing connection...");
+			    ControlSocket.close();
+			}
+		    catch (IOException ioEx)
+			{
+			    System.out.println("Unable to disconnect.");
+			    System.exit(1);
+			}
+		}
+
+	} else {
+	    System.out.println("Must enter \"connect\" to connect to server.");
+	    System.exit(1);
+	}
     }
 }
