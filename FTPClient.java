@@ -4,6 +4,7 @@ import java.util.*;
 import java.text.*;
 import java.lang.*;
 import javax.swing.*;
+import java.util.Scanner;
 class FTPClient {
 
     public static void main(String argv[]) throws Exception {
@@ -16,14 +17,10 @@ class FTPClient {
         boolean clientgo = true;
         int port = 12000;
 
-
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-
         System.out.println("To connect to server, enter \"connect\" followed by the server's IP and port.");
-
         sentence = inFromUser.readLine();
         StringTokenizer tokens = new StringTokenizer(sentence);
-
 
         if (sentence.startsWith("connect")) {
             String serverName = tokens.nextToken(); // pass the connect command
@@ -45,7 +42,7 @@ class FTPClient {
                 if (sentence.equals("list")) {
 
                     port = port + 2;
-		            System.out.println(port);
+                    System.out.println(port);
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
                     ServerSocket welcomeData = new ServerSocket(port);
                     Socket dataSocket = welcomeData.accept();
@@ -74,9 +71,36 @@ class FTPClient {
 
                     DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
+                } else if (sentence.startsWith("stor:")){
+                    FTPClient client = new FTPClient();
+                    FileInputStream fis = null;
+                    try {
+                        //
+                        // Create an InputStream of the file to be uploaded
+                        //
+                        System.out.println("Enter your filename: ");
+                        Scanner sc = new Scanner(System.in);
+                        String filename =sc.next();
+                        fis = new FileInputStream(filename);
+
+                        //
+                        // Store file to server
+                        //
+                        client.storeFile(filename, fis);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            if (fis != null) {
+                                fis.close();
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
+                ControlSocket.close();
             }
-            ControlSocket.close();
         }
     }
 }
