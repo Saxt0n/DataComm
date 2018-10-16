@@ -27,15 +27,6 @@ class FTPServer {
             port = Integer.parseInt(frstln);
             clientCommand = tokens.nextToken();
 
-            if (clientCommand.equals("retr:") || clientCommand.equals("stor:")) {
-                try {
-                    clientFileName = tokens.nextToken();
-                } catch (Exception e) {
-                    System.out.println("Invalid input");
-                }
-            }
-
-
             if (clientCommand.equals("list")) {
                 System.out.println("Listing files...");
                 System.out.println(port);
@@ -54,7 +45,11 @@ class FTPServer {
 
                 dataOutToClient.writeBytes(fileList);
                 dataSocket.close();
+                System.out.println("Data Socket closed");
+            
             } else if (clientCommand.equals("retr:")) {
+                try {
+                clientFileName = tokens.nextToken();
                 Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 
 
@@ -63,27 +58,25 @@ class FTPServer {
                 DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
                 System.out.println("retr socket open");
                 System.out.println(clientFileName);
-                try {
+
                     File f = new File("/" + clientFileName);
-                } catch (Exception e) {
-                    System.out.println("Error opening file.");
-                }
+
 
                 dataSocket.close();
-            } else if (clientCommand.equals("quit")) {
-                System.out.println("Closing connection.")
+                }
+                catch (Exception e) {
+                    System.out.println("Error opening file.");
+                }
+            } 
+            
+            else if (clientCommand.equals("quit")) {
+                System.out.println("Closing connection.");
 
             }
 
-
-            System.out.println("Data Socket closed");
         }
 
-//
-//    if(clientCommand.equals("retr:")) {
-//
-//
-//			}
+
 
     }
 
