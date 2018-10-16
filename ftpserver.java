@@ -11,16 +11,19 @@ class FTPServer {
         String clientCommand;
         String clientFileName = "";
         byte[] data;
-        ServerSocket welcomeSocket = new ServerSocket(12000);
+
         String frstln;
         int port;
 
-
+        while (true) {
+        System.out.println("hi");
+        ServerSocket welcomeSocket = new ServerSocket(12000);
+        boolean isConnected = true;
         Socket connectionSocket = welcomeSocket.accept();
         DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 
-        while (true) {
+            while (isConnected == true) {
             fromClient = inFromClient.readLine();
             StringTokenizer tokens = new StringTokenizer(fromClient);
             frstln = tokens.nextToken();
@@ -70,15 +73,18 @@ class FTPServer {
             } 
             
             else if (clientCommand.equals("quit")) {
-                System.out.println("Closing connection.");
+                System.out.println(connectionSocket.getInetAddress() + "has disconnected");
+                isConnected = false;
+                welcomeSocket.close();
 
             }
 
         }
-
-
-
+      }
     }
+
+
+    
 
     private static String getFiles() {
         String files = "";

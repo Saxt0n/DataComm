@@ -32,7 +32,7 @@ class FTPClient {
 
             System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || close");
 
-            while (isOpen && clientgo) {
+            while (isOpen == true && clientgo) {
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
                 DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
@@ -71,36 +71,43 @@ class FTPClient {
 
                     DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
-                } else if (sentence.startsWith("stor:")){
-                    FTPClient client = new FTPClient();
-                    FileInputStream fis = null;
-                    try {
-                        //
-                        // Create an InputStream of the file to be uploaded
-                        //
-                        System.out.println("Enter your filename: ");
-                        Scanner sc = new Scanner(System.in);
-                        String filename =sc.next();
-                        fis = new FileInputStream(filename);
+                } 
+//                 else if (sentence.startsWith("stor:")){
+//                     FTPClient client = new FTPClient();
+//                     FileInputStream fis = null;
+//                     try {
+//                         //
+//                         // Create an InputStream of the file to be uploaded
+//                         //
+//                         System.out.println("Enter your filename: ");
+//                         Scanner sc = new Scanner(System.in);
+//                         String filename =sc.next();
+//                         fis = new FileInputStream(filename);
+// 
+//                         //
+//                         // Store file to server
+//                         //
+//                         client.storeFile(filename, fis);
+//                     } catch (IOException e) {
+//                         e.printStackTrace();
+//                     } finally {
+//                         try {
+//                             if (fis != null) {
+//                                 fis.close();
+//                             }
+//                         } catch (IOException e) {
+//                             e.printStackTrace();
+//                         }
+//                     }
+//                 }
 
-                        //
-                        // Store file to server
-                        //
-                        client.storeFile(filename, fis);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } finally {
-                        try {
-                            if (fis != null) {
-                                fis.close();
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                    else if (sentence.startsWith("quit")) {
+                    System.out.print("qutting");
+                    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+                    isOpen = false;
                     }
-                }
-                ControlSocket.close();
             }
+                ControlSocket.close();
         }
     }
 }
