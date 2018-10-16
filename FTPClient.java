@@ -33,7 +33,7 @@ class FTPClient {
 
             Socket ControlSocket = new Socket(serverName, port1);
 
-            System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || close");
+            System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || quit");
 
             while (isOpen && clientgo) {
                 DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
@@ -45,13 +45,14 @@ class FTPClient {
                 if (sentence.equals("list")) {
 
                     port = port + 2;
+		    System.out.println(port);
                     outToServer.writeBytes(port + " " + sentence + " " + '\n');
-                    try {
+
                         ServerSocket welcomeData = new ServerSocket(port);
                         Socket dataSocket = welcomeData.accept();
-
+			
                         DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
-                        while (notEnd) {
+                        while (inData.available() > 0) {
                             modifiedSentence = inData.readUTF();
                             System.out.println("Listing Files: ");
                             System.out.println(modifiedSentence);
@@ -59,15 +60,20 @@ class FTPClient {
 
                         welcomeData.close();
                         dataSocket.close();
-                        System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || close");
+                        System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
 
-                    } catch (Exception e) {
-                        System.out.println("Something went wrong");
-                    }
-                } else if (sentence.startsWith("retr: ")) {
+                } else if (sentence.startsWith("retr ")) {
                     //testing list
                     isOpen = false;
-                }
+		    System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
+                } else if (sentence.startsWith("stor ")) {
+		    
+		    System.out.println("\nWhat would you like to do next: \n retr: file.txt ||stor: file.txt  || quit");
+		} else if (sentence.equals("quit")) {
+		    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+		    isOpen = false;
+		}
+	 
             }
             ControlSocket.close();
         }
