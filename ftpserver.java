@@ -93,33 +93,36 @@ class ClientHandler extends Thread
 				System.out.println("Data Socket closed");
 			}
 			
-			/**
-			else if (clientCommand.equals("retr:")) {
+
+			else if (clientCommand.equals("retr")) {
 			    try {
+				String fileLine;
 				clientFileName = tokens.nextToken();
+				System.out.println(clientFileName);
 				Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-
-
 				System.out.println("Data Socket opened.");
+				File f = new File(clientFileName);
 
-				dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+				FileInputStream fileContents = new FileInputStream(f);
+				
+
+				DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 				System.out.println("retr socket open");
+				BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileContents));
+				while ((fileLine = fileReader.readLine()) != null) {
+						fileLine = (fileLine + "\n");
+						dataOutToClient.writeBytes(fileLine);
+							}
 				System.out.println(clientFileName);
 
-				File f = new File("/" + clientFileName);
-
-
 				dataSocket.close();
+				fileContents.close();
 			    }
 			    catch (Exception e) {
 				System.out.println("Error opening file.");
 			    }
-			} else if (clientCommand.equals("quit")) {
-			    closed = true;
-			} else {
-			    System.out.println("Invalid Command");
-			}
-		**/
+			} 
+
 		
 		    } while (!clientCommand.equals("quit"));
 	    }

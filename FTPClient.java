@@ -72,8 +72,15 @@ class FTPClient {
 			    outToServer.writeBytes(port + " " + sentence + " " + '\n');
 			    ServerSocket welcomeData = new ServerSocket(port);
 			    Socket dataSocket = welcomeData.accept();
-
 			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+				do {
+				    modifiedSentence = inData.readLine();
+					if (modifiedSentence != null)
+					{
+					System.out.println(modifiedSentence);
+					}
+				} while(modifiedSentence != null);
+				
 
 	        	} else if (sentence.startsWith("stor ")) {
 			    // FTPClient client = new FTPClient();
