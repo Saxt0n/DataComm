@@ -46,18 +46,18 @@ class ClientHandler extends Thread
     private int port;
 	
     public ClientHandler(Socket socket) {
+
 	try
 	    {
 		connectionSocket = socket;
-		outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 		inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 		port = connectionSocket.getPort();
 	    }
 	catch (IOException ioEx)
 	    {
 		ioEx.printStackTrace();
-	    }
-    }
+		}
+	}
 		
     public void run() {
 	try
@@ -69,60 +69,31 @@ class ClientHandler extends Thread
 			frstln = tokens.nextToken();
 			port = Integer.parseInt(frstln);
 			clientCommand = tokens.nextToken();
-			DataOutputStream dataOutToClient;
 			BufferedReader dataInFromClient;
 
-			if (clientCommand.equals("list")) {
-			    System.out.println("Listing files...");
-			    System.out.println(port);
-			    Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+            if (clientCommand.equals("list")) {
+                System.out.println("Listing files...");
+                System.out.println(port);
+                Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 
 
-			    System.out.println("Data Socket opened.");
+                System.out.println("Data Socket opened.");
 
-			    dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-			    // dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+                DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+                // BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
-			    String fileList = getFiles();
+                String fileList = getFiles();
 
-			    //Testing
-			    System.out.println(fileList);
+                //Testing
+                System.out.println(fileList);
 
-			    dataOutToClient.writeBytes(fileList);
-			    dataSocket.close();
-			    System.out.println("Data Socket closed");System.out.println("Listing files...");
-			    System.out.println(port);
-			    dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-
-			    System.out.println("Data Socket opened.");
-
-			    dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-			    dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
-			    fileList = "";
-			    File folder = new File(".");  //the folder for this process
-			    File[] listOfFiles = folder.listFiles();  //this object contains all files AND folders in the current directory
-
-			    /* Iterate through and add the name to the list only if the file object is indeed a file (not a directory) */
-			    if (fileList.length() != 0) {  
-				for (File file : listOfFiles) {
-				    if (file.isFile()) {
-					fileList += file.getName() + ", ";
-				    }
-				}
-
-				/* If the list of files isn't empty, then trim the last ", " off the list */
-				if (fileList.length() != 0) {
-				    fileList = fileList.substring(0, fileList.length() - 2);
-				}
-
-				/* Send list to client */
-				dataOutToClient.writeBytes(fileList);
-				dataSocket.close();
-			    }
-			    else {
-				System.out.print("file list is empty");
-			    }
-			} else if (clientCommand.equals("retr:")) {
+                dataOutToClient.writeBytes(fileList);
+                dataSocket.close();
+				System.out.println("Data Socket closed");
+			}
+			
+			/**
+			else if (clientCommand.equals("retr:")) {
 			    try {
 				clientFileName = tokens.nextToken();
 				Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
@@ -147,7 +118,7 @@ class ClientHandler extends Thread
 			} else {
 			    System.out.println("Invalid Command");
 			}
-		
+		**/
 		
 		    } while (!clientCommand.equals("quit"));
 	    }

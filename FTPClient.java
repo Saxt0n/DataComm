@@ -54,7 +54,7 @@ class FTPClient {
 			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 
 			    System.out.println("There is data to read");
-			    //modifiedSentence = inData.readLine();
+			    modifiedSentence = inData.readLine();
 			    System.out.println("Listing Files: ");
 			    System.out.println(modifiedSentence);
 
@@ -103,6 +103,13 @@ class FTPClient {
 			    //}
 			    //}
 			}
+				
+				
+			else if (sentence.equals("quit")) {
+                    System.out.print("qutting");
+                    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+                    isOpen = false;
+				}
 		    } while (isOpen);
 		}
 	    catch (IOException ioEx)
