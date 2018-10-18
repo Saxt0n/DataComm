@@ -66,21 +66,23 @@ class FTPClient {
 			    StringTokenizer tokens2 = new StringTokenizer(sentence);
 			    tokens2.nextToken();
 			    String filename = tokens2.nextToken();
-
 			    port = port + 2;
 			    System.out.println(port);
 			    outToServer.writeBytes(port + " " + sentence + " " + '\n');
 			    ServerSocket welcomeData = new ServerSocket(port);
+				FileWriter fw = new FileWriter(filename);
 			    Socket dataSocket = welcomeData.accept();
 			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 				do {
 				    modifiedSentence = inData.readLine();
 					if (modifiedSentence != null)
 					{
-					System.out.println(modifiedSentence);
+				    modifiedSentence = (modifiedSentence + "\n");
+					System.out.print(modifiedSentence);
+					fw.write(modifiedSentence);
 					}
 				} while(modifiedSentence != null);
-				
+				  fw.flush();
 
 	        	} else if (sentence.startsWith("stor ")) {
 			    // FTPClient client = new FTPClient();
