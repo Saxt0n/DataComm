@@ -50,6 +50,7 @@ class ClientHandler extends Thread
 	try
 	    {
 		connectionSocket = socket;
+		outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 		inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 		port = connectionSocket.getPort();
 	    }
