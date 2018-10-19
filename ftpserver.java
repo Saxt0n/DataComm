@@ -144,6 +144,7 @@ class ClientHandler extends Thread
 					}
 				} while(modifiedSentence != null);
 				  fw.flush();
+				  dataSocket.close();
 
 				  
 			}
