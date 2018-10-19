@@ -139,7 +139,6 @@ class ClientHandler extends Thread
 					if (modifiedSentence != null)
 					{
 				    modifiedSentence = (modifiedSentence + "\n");
-					System.out.print(modifiedSentence);
 					fw.write(modifiedSentence);
 					}
 				} while(modifiedSentence != null);
