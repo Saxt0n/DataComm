@@ -35,9 +35,9 @@ class FTPClient {
 		    ControlSocket = new Socket(serverName, connectPort);
 
 		    System.out.println("You are now connected to " + serverName);
-		    System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || quit");
 
 		    do {
+		    System.out.println("\nWhat would you like to do? \n list || retr: file.txt ||stor: file.txt  || quit");
 			DataOutputStream outToServer = new DataOutputStream(ControlSocket.getOutputStream());
 
 			DataInputStream inFromServer = new DataInputStream(new BufferedInputStream(ControlSocket.getInputStream()));
@@ -60,7 +60,7 @@ class FTPClient {
 
 			    welcomeData.close();
 			    dataSocket.close();
-			    System.out.println("\nWhat would you like to do next? \n list || retr: file.txt || stor: file.txt || close");
+
 
 			} else if (sentence.startsWith("retr ")) {
 			    StringTokenizer tokens2 = new StringTokenizer(sentence);
@@ -83,6 +83,7 @@ class FTPClient {
 					}
 				} while(modifiedSentence != null);
 				  fw.flush();
+				  dataSocket.close();
 			      welcomeData.close();
 
 	        	} 
