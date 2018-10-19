@@ -83,35 +83,40 @@ class FTPClient {
 					}
 				} while(modifiedSentence != null);
 				  fw.flush();
+			      welcomeData.close();
 
-	        	} else if (sentence.startsWith("stor ")) {
-			    // FTPClient client = new FTPClient();
-			    //FileInputStream fis = null;
-			    //try {
-				//
-				// Create an InputStream of the file to be uploaded
-				//
-				//System.out.println("Enter your filename: ");
-				//Scanner sc = new Scanner(System.in);
-				//String filename =sc.next();
-				//fis = new FileInputStream(filename);
+	        	} 
+				
+				else if (sentence.startsWith("stor ")) {
+				String fileLine;
+			    StringTokenizer tokens2 = new StringTokenizer(sentence);
+			    tokens2.nextToken();
+			    String filename = tokens2.nextToken();
+			    port = port + 2;
+			    System.out.println(port);
+			    outToServer.writeBytes(port + " " + sentence + " " + '\n');
+				System.out.println(filename);
+			    System.out.println(serverName);
+				ServerSocket sendData = new ServerSocket(port);
+				Socket dataSocket = sendData.accept();
+				System.out.println("Data Socket opened.");
+				File f = new File(filename);
+				FileInputStream fileContents = new FileInputStream(f);
+				DataOutputStream dataOutToServer = new DataOutputStream(dataSocket.getOutputStream());
+				System.out.println("retr socket open");
+				BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileContents));
+				while ((fileLine = fileReader.readLine()) != null) {
+						fileLine = (fileLine + "\n");
+						dataOutToServer.writeBytes(fileLine);
+							}
+				System.out.println(filename);
 
-				//
-				// Store file to server
-				//
-				//client.storeFile(filename, fis);
-			    //} catch (IOException e) {
-				//e.printStackTrace();
-			    // } finally {
-			    //try {
-			    //if (fis != null) {
-			    //	fis.close();
-					//}
-			    //} catch (IOException e) {
-			    // e.printStackTrace();
-			    //}
-			    //}
-			}
+				dataSocket.close();
+				fileContents.close();
+				sendData.close();
+			    }
+
+			
 				
 				
 			else if (sentence.equals("quit")) {

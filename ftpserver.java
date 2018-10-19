@@ -122,6 +122,32 @@ class ClientHandler extends Thread
 				System.out.println("Error opening file.");
 			    }
 			} 
+			
+			else if (clientCommand.equals("stor")){
+
+				String fileLine;
+				String modifiedSentence;
+				clientFileName = tokens.nextToken();
+				Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+				System.out.println(clientFileName);
+				System.out.println(port);
+				FileWriter fw = new FileWriter(clientFileName);
+				
+			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+				do {
+				    modifiedSentence = inData.readLine();
+					if (modifiedSentence != null)
+					{
+				    modifiedSentence = (modifiedSentence + "\n");
+					System.out.print(modifiedSentence);
+					fw.write(modifiedSentence);
+					}
+				} while(modifiedSentence != null);
+				  fw.flush();
+
+				  
+			}
+
 
 		
 		    } while (!clientCommand.equals("quit"));
