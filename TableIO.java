@@ -49,13 +49,17 @@ public class TableIO {
 	
     public static void main(String argv[]) {
     	String dbFile = "filelist.xml";
-    	String term = "bing";
+    	String user = "goblin";
     	TableIO tio = new TableIO(dbFile);
-    	tio.register("I", "bingbong", "o,", "p", "p", "k");
-    	ArrayList<NapFile> nf = tio.searchByDescription(term);
-    	for (int i = 0; i < nf.size(); i++) {
-    		System.out.println(nf.get(i)); 
-    	}
+    	tio.printAllNodes();
+    	
+    	tio.register("doodle", "bingbong", "goblin", "1.2.3.4", "2121", "bad");
+    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    	tio.printAllNodes();
+    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    	tio.deleteByUsername(user);
+    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+    	tio.printAllNodes();
     }
     
     /**
@@ -67,13 +71,21 @@ public class TableIO {
     	this.allFiles = new ArrayList<NapFile>();
     	update();   
     }
+    
+    /**
+     * A method to help with debugging that prints every file in the database
+     */
+    public void printAllNodes() {
+    	for (int i = 0; i < this.allFiles.size(); i++){
+    		System.out.println(this.allFiles.get(i));
+    	}   	
+    }
      
     /*
      * A helper method to keep the ArrayList up to date
      */
     private void update() {
     	this.allFiles = new ArrayList<NapFile>();
-    	
     	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -124,14 +136,14 @@ public class TableIO {
     		if (nl.item(i).getNodeName().equals("user")) {
     			NodeList user = nl.item(i).getChildNodes();
     			for (int k = 0; k < user.getLength(); k++ ){
-    	    		if (user.item(k).getNodeName().equals("ip")) {
+    	    		if (user.item(k).getNodeName().equals("username")) {
+    	    			username = user.item(k).getTextContent();
+    	    		}
+    				if (user.item(k).getNodeName().equals("ip")) {
     	    			ip = user.item(k).getTextContent();
     	    		}
     	    		if (user.item(k).getNodeName().equals("port")) {
     	    			port = user.item(k).getTextContent();
-    	    		}
-    	    		if (user.item(k).getNodeName().equals("username")) {
-    	    			username = user.item(k).getTextContent();
     	    		}
     	    		if (user.item(k).getNodeName().equals("connSpeed")) {
     	    			connSpeed = user.item(k).getTextContent();
@@ -140,7 +152,7 @@ public class TableIO {
     	    }
     	}
     
-    	NapFile returnFile = new NapFile(name, description, ip, port, username, connSpeed);
+    	NapFile returnFile = new NapFile(name, description, username, ip, port, connSpeed);
     	return returnFile;
     }
     
@@ -178,6 +190,7 @@ public class TableIO {
 		this.allFiles = allFiles;
 	}
     
+	
 	/**
 	 * TODO Check through directory and repeat this action for as many files as there are
 	 */
@@ -227,11 +240,10 @@ public class TableIO {
     		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
     		DOMSource source = new DOMSource(doc);
     		StreamResult result = new StreamResult(new File(this.getDbFileName()));
-
-//    		 Output to console for testing
-//    		 StreamResult result = new StreamResult(System.out);
-
+    		
     		transformer.transform(source, result);
+    		
+    		this.update();
 
     		System.out.println("File saved!");
     		System.out.println("ArrayList updated!");
@@ -245,6 +257,49 @@ public class TableIO {
 	    } catch (IOException e) {
 	        	e.printStackTrace();
 	    }
+    }
+	
+    public void deleteByUsername(String username) {
+    	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(dbFileName);
+            //Node root = doc.getFirstChild();
+            NodeList fileList = doc.getElementsByTagName("file");
+            int numFiles = fileList.getLength();
+            
+            //Loop through all files in DB
+            for (int i = numFiles; i > 0; i--) {
+            	
+            	//Grabs a file tag
+            	Node n = fileList.item(i - 1);
+            	
+            	//Turn it into a NapFile
+            	NapFile nf = nodeToNapFile(n);
+
+            	if (nf.getUsername().equals(username)) {
+            		n.getParentNode().removeChild(n);
+                	System.out.println("DELETING FILE FROM " + nf.getUsername());
+            	}            	
+            }
+            
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    		Transformer transformer = transformerFactory.newTransformer();
+    		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    		DOMSource source = new DOMSource(doc);
+    		StreamResult result = new StreamResult(new File(this.getDbFileName()));
+    		transformer.transform(source, result);
+            
+            this.update();
+        } catch (ParserConfigurationException e) {
+            	e.printStackTrace();
+        } catch (TransformerException tfe) {
+    		tfe.printStackTrace();   
+        } catch (SAXException e) {
+            	e.printStackTrace();
+        } catch (IOException e) {
+            	e.printStackTrace();
+        } 
     }
 }
 

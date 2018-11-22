@@ -62,9 +62,8 @@ public class NapFile {
 	}
 	
 	public String toString() {
-		String returnString =  "File: " + this.fileName +"\nDescription: " + this.description + "\nIP: " + this.ip
-				+ "\nPort: " + port + "\nUsername: " + username + "\nConnectionSpeed: " + connSpeed + "\n";
-		return returnString;
-		
+		String returnString =  "File: " + this.fileName +"\nDescription: " + this.description + "\nUsername: " + username + 
+				"\nIP: " + this.ip + "\nPort: " + port + "\nConnectionSpeed: " + connSpeed + "\n";
+		return returnString;	
 	}
 }
