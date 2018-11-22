@@ -36,31 +36,20 @@ public class TableIO {
 	 */
 	private ArrayList<NapFile> allFiles;
 	
-
-
-	
-	
-	
-	/**
-	 * TODO: User deletion
-	 * 
-	 */
-	
-	
-    public static void main(String argv[]) {
-    	String dbFile = "filelist.xml";
-    	String user = "goblin";
-    	TableIO tio = new TableIO(dbFile);
-    	tio.printAllNodes();
-    	
-    	tio.register("doodle", "bingbong", "goblin", "1.2.3.4", "2121", "bad");
-    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    	tio.printAllNodes();
-    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    	tio.deleteByUsername(user);
-    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-    	tio.printAllNodes();
-    }
+//    public static void main(String argv[]) {
+//    	String dbFile = "filelist.xml";
+//    	String user = "goblin";
+//    	TableIO tio = new TableIO(dbFile);
+//    	tio.printAllNodes();
+//    	
+//    	tio.register("doodle", "bingbong", "goblin", "1.2.3.4", "2121", "bad");
+//    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//    	tio.printAllNodes();
+//    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//    	tio.deleteByUsername(user);
+//    	System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+//    	tio.printAllNodes();
+//    }
     
     /**
      * Initializes the database as an ArrayList of NapFiles
@@ -259,6 +248,10 @@ public class TableIO {
 	    }
     }
 	
+	/**
+	 * Deletes all files in the database that belong to username
+	 * @param username
+	 */
     public void deleteByUsername(String username) {
     	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         try {
