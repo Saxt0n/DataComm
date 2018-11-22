@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<filelist>
+	<file>
+		<name>MP3.txt</name>
+		<description>FAQ on the compression algorithm used in MPEG-2 audio encoding file.</description>
+		<user>
+			<username>Saxton</username>
+			<ip>1.2.1</ip>
+			<port>2323</port>
+			<connSpeed>Ethernet</connSpeed>
+		</user>
+	</file>
+	<file>
+		<name>Vinay.txt</name>
+		<description>This is the best file in the world.</description>
+		<user>
+			<username>Ally</username>
+			<ip>23.23.23.23</ip>
+			<port>2121</port>
+			<connSpeed>veryFast</connSpeed>
+		</user>
+	</file>
+	<file>
+		<name>test.txt</name>
+		<description>This is the ultimate test file.</description>
+		<user>
+			<username>Tressa</username>
+			<ip>42.42.42.42</ip>
+			<port>3030</port>
+			<connSpeed>dialUp</connSpeed>
+		</user>
+	</file>
+
+
+</filelist>
