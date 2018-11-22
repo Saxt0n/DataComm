@@ -1,6 +1,14 @@
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.parsers.*;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import java.lang.String;
 import java.util.ArrayList;
 
@@ -12,25 +20,83 @@ import org.xml.sax.SAXException;
 
 /**
  * A class to hold methods related to XML I/O
+ * Got help with XML I/O from https://www.mkyong.com/java/how-to-create-xml-file-in-java-dom/
  * @author Saxton Stafford
  */
 
 public class TableIO {
+	
+	/*
+	 * Filename containing database info
+	 */
+	private String dbFileName;
+	
+	/*
+	 * List of every file in the form of a NapFile
+	 */
+	private ArrayList<NapFile> allFiles;
+	
 
+
+	
+	
+	
 	/**
-	 * TODO: User registration, User deletion
+	 * TODO: User deletion
 	 * 
 	 */
 	
+	
     public static void main(String argv[]) {
     	String dbFile = "filelist.xml";
-    	String searchTerm = "file";
-    	
-    	ArrayList<NapFile> n = searchByDescription(dbFile, searchTerm);
-    	for (int i = 0; i < n.size(); i++){
-    		System.out.println(n.get(i).toString());
+    	String term = "bing";
+    	TableIO tio = new TableIO(dbFile);
+    	tio.register("I", "bingbong", "o,", "p", "p", "k");
+    	ArrayList<NapFile> nf = tio.searchByDescription(term);
+    	for (int i = 0; i < nf.size(); i++) {
+    		System.out.println(nf.get(i)); 
     	}
-
+    }
+    
+    /**
+     * Initializes the database as an ArrayList of NapFiles
+     * @param dbFileName
+     */
+    TableIO (String dbFileName) {
+    	this.dbFileName = dbFileName;
+    	this.allFiles = new ArrayList<NapFile>();
+    	update();   
+    }
+     
+    /*
+     * A helper method to keep the ArrayList up to date
+     */
+    private void update() {
+    	this.allFiles = new ArrayList<NapFile>();
+    	
+    	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(dbFileName);
+            NodeList fileList = doc.getElementsByTagName("file");
+            
+            //Loop through all files in DB
+            for (int i = 0; i< fileList.getLength(); i++) {
+            	
+            	//Grabs a file tag
+            	Node n = fileList.item(i);
+            	
+            	//Turn it into a NapFile
+            	NapFile nf = nodeToNapFile(n);
+            	allFiles.add(nf);
+            }
+        } catch (ParserConfigurationException e) {
+            	e.printStackTrace();
+        } catch (SAXException e) {
+            	e.printStackTrace();
+        } catch (IOException e) {
+            	e.printStackTrace();
+        }    
     }
     
     /**
@@ -79,52 +145,106 @@ public class TableIO {
     }
     
     /**
-     * Searches all files in the XML tree and returns ones whose descriptions contain the searchTerm 
+     * Searches all files in the XML tree and returns ones whose descriptions contain the searchTerm.
+     * Case sensitive.
      * @param dbFile The XML File to be parsed
      * @param searchTerm What to search for in file descriptions
      * @return An ArrayList of NapFiles whose descriptions contain the searchTerm
      */
-    public static ArrayList<NapFile> searchByDescription(String dbFile, String searchTerm) {
+    public ArrayList<NapFile> searchByDescription(String term) {
         ArrayList<NapFile> searchResult = new ArrayList<NapFile>();  
         
-    	DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        try {
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(dbFile);
-            NodeList fileList = doc.getElementsByTagName("file");
-            
-            //Loop through all files in DB
-            for (int i = 0; i< fileList.getLength(); i++) {
-            	
-            	//Grabs a file tag
-            	Node n = fileList.item(i);
-         	
-            	//Put name, description, and owner of a file in a list
-            	NodeList fileChildren = n.getChildNodes();
-            	
-            	//Search for file description specifically
-            	for (int j = 0; j < fileChildren.getLength(); j++) {
-	            	Node m = fileChildren.item(j);
-	            	//System.out.println(m.getTextContent());
-	            	
-	            	//If file is found, make an object and add the file/owner data to list
-	            	if (m.getNodeName().equals("description") && m.getTextContent().contains(searchTerm)) {
-	            		NapFile napfile = nodeToNapFile(n);	            		
-	            		searchResult.add(napfile);
-	            	}
-            	}
-
-            }
-        } catch (ParserConfigurationException e) {
-        	e.printStackTrace();
-        } catch (SAXException e) {
-        	e.printStackTrace();
-        } catch (IOException e) {
-        	e.printStackTrace();
-        }       
+        for (int i = 0; i < this.getAllFiles().size(); i++) {
+    		if (this.getAllFiles().get(i).getDescription().contains(term)) {
+    			searchResult.add(this.getAllFiles().get(i));
+    		}
+    	}	            
     	return searchResult;
     }
     
+	public String getDbFileName() {
+		return dbFileName;
+	}
 
+	public void setDbFileName(String dbFileName) {
+		this.dbFileName = dbFileName;
+	}
+
+	public ArrayList<NapFile> getAllFiles() {
+		return allFiles;
+	}
+
+	public void setAllFiles(ArrayList<NapFile> allFiles) {
+		this.allFiles = allFiles;
+	}
+    
+	/**
+	 * TODO Check through directory and repeat this action for as many files as there are
+	 */
+	public void register(String filename, String description, String username, String ip, String port, String connSpeed) {
+		
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document doc = builder.parse(dbFileName);
+            Node root = doc.getFirstChild();
+            
+            Element fileNode = doc.createElement("file");
+            
+            Element filenameNode = doc.createElement("name");
+            filenameNode.appendChild(doc.createTextNode(filename));
+            
+            
+            Element descriptionNode = doc.createElement("description");
+            descriptionNode.appendChild(doc.createTextNode(description));
+            
+            Element userNode = doc.createElement("user");
+            
+            Element usernameNode = doc.createElement("username");
+            usernameNode.appendChild(doc.createTextNode(username));
+            userNode.appendChild(usernameNode);
+            
+            Element ipNode = doc.createElement("ip");
+            ipNode.appendChild(doc.createTextNode(ip));
+            userNode.appendChild(ipNode);
+            
+            Element portNode = doc.createElement("port");
+            portNode.appendChild(doc.createTextNode(port));
+            userNode.appendChild(portNode);
+            
+            Element speedNode = doc.createElement("connSpeed");
+            speedNode.appendChild(doc.createTextNode(connSpeed));
+            userNode.appendChild(speedNode);
+            
+            fileNode.appendChild(filenameNode);
+            fileNode.appendChild(descriptionNode);
+            fileNode.appendChild(userNode);
+            
+            root.appendChild(fileNode);
+            
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    		Transformer transformer = transformerFactory.newTransformer();
+    		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    		DOMSource source = new DOMSource(doc);
+    		StreamResult result = new StreamResult(new File(this.getDbFileName()));
+
+//    		 Output to console for testing
+//    		 StreamResult result = new StreamResult(System.out);
+
+    		transformer.transform(source, result);
+
+    		System.out.println("File saved!");
+    		System.out.println("ArrayList updated!");
+            
+        } catch (ParserConfigurationException pce) {
+    		pce.printStackTrace();
+    	} catch (TransformerException tfe) {
+    		tfe.printStackTrace();       
+	    } catch (SAXException e) {
+	        	e.printStackTrace();
+	    } catch (IOException e) {
+	        	e.printStackTrace();
+	    }
+    }
 }
 
