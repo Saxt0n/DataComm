@@ -18,7 +18,7 @@ class FTPServer {
 
 		    System.out.println("\nNew client connected.");
 
-		    ClientHandler handler = new ClientHandler(connectionSocket);
+		    ClientHandler1 handler = new ClientHandler1(connectionSocket);
 
 		    handler.start();
 		}
@@ -32,7 +32,7 @@ class FTPServer {
     }
 }
 
-class ClientHandler extends Thread
+class ClientHandler1 extends Thread
 {
     private DataOutputStream outToClient;
     private BufferedReader inFromClient;
@@ -45,7 +45,7 @@ class ClientHandler extends Thread
     private Socket connectionSocket;
     private int port;
 	
-    public ClientHandler(Socket socket) {
+    public ClientHandler1(Socket socket) {
 
 	try
 	    {
