@@ -36,7 +36,9 @@ public class HostGui{
 	private JTable table;
 	private DefaultTableModel tableModel;
 	private JScrollPane scrollTable;
+    private JScrollPane scrollCommand;
 	private JComboBox comboBox;
+    private int port = 0;
 
 	/**
 	 * Launch the application.
@@ -186,23 +188,26 @@ public class HostGui{
 		btnGo.setEnabled(false);
 
 		commandArea = new JTextArea();
-		commandArea.setBounds(12, 56, 521, 101);
-		panel_3.add(commandArea);
+		scrollCommand = new JScrollPane(commandArea);
+		scrollCommand.setBounds(12, 56, 521, 101);
+		scrollCommand.setVisible(true);
+		panel_3.add(scrollCommand);
 
 	}
 
 	private class EventListener implements ActionListener {
+	    
 		@Override
 		public void actionPerformed (final ActionEvent e) {
-			int port = 0;
 			if (e.getSource().equals(btnConnect)) {
 				if (btnConnect.getText().equals("Disconnect")) {
 					commandArea.append("Quitting..." + "\n");
 					try
 					{
+					    outToServer.writeBytes(port + " quit " + '\n');
 						commandArea.append("Closing connection..." + "\n");
 						controlSocket.close();
-						btnConnect.setText("Connect");
+						btnConnect.setEnabled(false);
 						btnSearch.setEnabled(false);
 						keywordField.setEnabled(false);
 						btnGo.setEnabled(false);
@@ -220,8 +225,8 @@ public class HostGui{
 						controlSocket = new Socket(sourceField.getText(), port);
 						commandArea.append("You are now connected to " + sourceField.getText() + "\n");
 						commandArea.append("Commands: list, retr, stor" + "\n");
-						outToServer.writeBytes((String)comboBox.getSelectedItem());
-						outToServer.writeBytes(usernameField.getText());
+						// outToServer.writeBytes("" + comboBox.getSelectedItem());
+						// outToServer.writeBytes(usernameField.getText());
 						btnSearch.setEnabled(true);
 						keywordField.setEnabled(true);
 						btnGo.setEnabled(true);
@@ -240,20 +245,25 @@ public class HostGui{
 						//	    		commandArea.append(fileSentence);
 						//	    		welcomeData.close();
 						//	    		dataSocket.close();
+						outToServer.writeBytes(port + " getDesc " + '\n');
 						ServerSocket welcomeData = new ServerSocket(port);
 						Socket dataSocket = welcomeData.accept();
-						outToServer.writeBytes(port + " getDesc " + '\n');
 						DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 						String fileList = inData.readLine();
-						String numFiles[] = fileList.split("\n");
+						String numFiles[] = fileList.split("~");
 						for (int i = 0; i<numFiles.length; i++) {
 							String fileInfo[] = numFiles[i].split(" ");
 							Vector<String> row = new Vector<String>();
 							row.addElement(fileInfo[0]); //speed
 							row.addElement(fileInfo[1]); //name
-							row.addElement(fileInfo[2]); //desc
+							String desc = "";
+							    for (int j=2; j<fileInfo.length; j++){
+								desc = desc + " " + fileInfo[j];
+							    }
+							row.addElement(desc);
 							tableModel.addRow(row);
 						}
+						table.setModel(tableModel);
 					}
 					catch (IOException ioEx)
 					{
@@ -264,6 +274,9 @@ public class HostGui{
 
 			if (e.getSource().equals(btnSearch)) {
 				String keyword = keywordField.getText();
+				if (keyword.equals("")){
+				    keyword = "*";
+				}
 				port = port + 2;
 				try
 				{
@@ -277,13 +290,17 @@ public class HostGui{
 					tableModel.addColumn("Speed");
 					tableModel.addColumn("Filename");
 					tableModel.addColumn("Description");
-					String numFiles[] = fileList.split("\n");
+					String numFiles[] = fileList.split("~");
 					for (int i = 0; i<numFiles.length; i++) {
 						String fileInfo[] = numFiles[i].split(" ");
 						Vector<String> row = new Vector<String>();
 						row.addElement(fileInfo[0]); //speed
 						row.addElement(fileInfo[1]); //name
-						row.addElement(fileInfo[2]); //desc
+						String desc = "";
+						for (int j=2; j<fileInfo.length; j++){
+						    desc = desc + " " + fileInfo[j];
+						}
+						row.addElement(desc);
 						tableModel.addRow(row);
 					}
 					table.setModel(tableModel);
@@ -308,7 +325,10 @@ public class HostGui{
 
 						DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
 						String fileSentence = inData.readLine();
-						commandArea.append(fileSentence);
+						String numFiles[] = fileSentence.split("~");
+						for (int i=0; i<numFiles.length; i++){
+						    commandArea.append(numFiles[i] + "\n");
+						}
 						welcomeData.close();
 						dataSocket.close();
 					}

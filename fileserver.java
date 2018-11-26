@@ -20,7 +20,7 @@ class FileServer {
 				System.out.println("\nNew client connected.");
 
 				ClientHandler handler = new ClientHandler(connectionSocket, dbTable);
-
+				
 				handler.start();
 			}
 		}
@@ -57,8 +57,8 @@ class ClientHandler extends Thread
 			outToClient = new DataOutputStream(connectionSocket.getOutputStream());
 			inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
 			port = connectionSocket.getPort();
-			speed= inFromClient.readLine();
-			username = inFromClient.readLine();
+			//speed= inFromClient.readLine();
+			//username = inFromClient.readLine();
 			this.dbTable = db;
 		}
 		catch (IOException ioEx)
@@ -108,6 +108,7 @@ class ClientHandler extends Thread
 					DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
 
 					String fileList = getFileList();
+					System.out.println(fileList);
 					dataOutToClient.writeBytes(fileList);
 					dataSocket.close();
 					System.out.println("Data Socket closed");
@@ -115,11 +116,16 @@ class ClientHandler extends Thread
 
 				else if (clientCommand.equals("search")) {
 					String keyword = tokens.nextToken();
+					System.out.println(keyword);
 					Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 					System.out.println("Data Socket opened.");
 					DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-
-					String fileList = getSearchList(keyword);
+					String fileList = "";
+					if (keyword.equals("*")){
+						fileList = getFileList();
+					    } else{
+						fileList = getSearchList(keyword);
+					    }
 					dataOutToClient.writeBytes(fileList);
 					dataSocket.close();
 					System.out.println("Data Socket closed");
@@ -211,7 +217,7 @@ class ClientHandler extends Thread
 			return "No files available.";
 		} else {
 			for (int i=0; i<docs.size(); i++) {
-				files = files + docs.get(i).getFileName() + "\n";
+				files = files + docs.get(i).getFileName() + "~";
 			}
 			return files;
 		}
@@ -221,7 +227,7 @@ class ClientHandler extends Thread
 		ArrayList<NapFile> docs = dbTable.getAllFiles();
 		String files = "";
 		for (int i=0; i< docs.size(); i++) {
-			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "\n";
+			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
 		}
 		return files;
 	}
@@ -230,7 +236,7 @@ class ClientHandler extends Thread
 		ArrayList<NapFile> docs = dbTable.searchByDescription(keyword);
 		String files = "";
 		for (int i=0; i<docs.size(); i++) {
-			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "\n";
+			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
 		}
 		return files;
 	}
