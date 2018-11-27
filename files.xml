@@ -1,0 +1,14 @@
+<filelist>
+	<file>
+		<name>TestTime.txt</name>
+		<description>Hopefully it works this time.</description>
+		<user>
+			<username>Tressa</username>
+			<ip>1.2.1</ip>
+			<port>7824</port>
+			<connSpeed>Ethernet</connSpeed>
+		</user>
+	</file>
+
+
+</filelist>

@@ -5,239 +5,278 @@ import java.util.*;
 
 class FileServer {
 
-	public static void main(String args[]) throws Exception{
+    public static void main(String args[]) throws Exception{
 
-		ServerSocket welcomeSocket;
-		int port = 12000;
-		TableIO dbTable = new TableIO("filelist.xml");
+	ServerSocket welcomeSocket;
+	int port = 12000;
+	TableIO dbTable = new TableIO("filelist.xml");
 
-		try
-		{
-			welcomeSocket  = new ServerSocket(port);
-			while (true) {
-				Socket connectionSocket = welcomeSocket.accept();
+	try
+	    {
+		welcomeSocket  = new ServerSocket(port);
+		while (true) {
+		    Socket connectionSocket = welcomeSocket.accept();
 
-				System.out.println("\nNew client connected.");
+		    System.out.println("\nNew client connected.");
 
-				ClientHandler handler = new ClientHandler(connectionSocket, dbTable);
+		    ClientHandler handler = new ClientHandler(connectionSocket, dbTable);
 				
-				handler.start();
-			}
+		    handler.start();
 		}
-		catch (IOException ioEX)
-		{
-			System.out.println("\nError in setting up port.");
-			System.exit(1);
-		}
+	    }
+	catch (IOException ioEX)
+	    {
+		System.out.println("\nError in setting up port.");
+		System.exit(1);
+	    }
 
-	}
+    }
 }
 
 class ClientHandler extends Thread
 {
-	private DataOutputStream outToClient;
-	private BufferedReader inFromClient;
-	private String fromClient;
-	private String clientCommand;
-	private String clientFileName = "";
-	private byte[] data;
-	private String frstln;
-	private Boolean closed = false;
-	private Socket connectionSocket;
-	private int port;
-	private TableIO dbTable;
-	private String speed;
-	private String username;
+    private DataOutputStream outToClient;
+    private BufferedReader inFromClient;
+    private String fromClient;
+    private String clientCommand;
+    private String clientFileName = "";
+    private byte[] data;
+    private String frstln;
+    private Boolean closed = false;
+    private Socket connectionSocket;
+    private int port;
+    private TableIO dbTable;
+    private String speed;
+    private String username;
 
-	public ClientHandler(Socket socket, TableIO db) {
+    public ClientHandler(Socket socket, TableIO db) {
 
-		try
-		{
-			connectionSocket = socket;
-			outToClient = new DataOutputStream(connectionSocket.getOutputStream());
-			inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-			port = connectionSocket.getPort();
-			//speed= inFromClient.readLine();
-			//username = inFromClient.readLine();
-			this.dbTable = db;
-		}
-		catch (IOException ioEx)
-		{
-			ioEx.printStackTrace();
-		}
-	}
+	try
+	    {
+		connectionSocket = socket;
+		outToClient = new DataOutputStream(connectionSocket.getOutputStream());
+		inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+		port = connectionSocket.getPort();
+		//speed= inFromClient.readLine();
+		//username = inFromClient.readLine();
+		this.dbTable = db;
+	    }
+	catch (IOException ioEx)
+	    {
+		ioEx.printStackTrace();
+	    }
+    }
 
-	public void run() {
-		try
-		{
-			do
-			{
-				fromClient = inFromClient.readLine();
-				StringTokenizer tokens = new StringTokenizer(fromClient);
-				frstln = tokens.nextToken();
-				port = Integer.parseInt(frstln);
-				clientCommand = tokens.nextToken();
-				BufferedReader dataInFromClient;
+    public void run() {
+	try
+	    {
+		do
+		    {
+			fromClient = inFromClient.readLine();
+			StringTokenizer tokens = new StringTokenizer(fromClient);
+			frstln = tokens.nextToken();
+			port = Integer.parseInt(frstln);
+			clientCommand = tokens.nextToken();
+			BufferedReader dataInFromClient;
 
-				if (clientCommand.equals("list")) {
-					System.out.println("Listing files...");
-					System.out.println(port);
-					Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-
-
-					System.out.println("Data Socket opened.");
-
-					DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-					// BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
-
-					String fileList = getFiles();
-
-					//Testing
-					System.out.println(fileList);
-
-					dataOutToClient.writeBytes(fileList);
-					dataSocket.close();
-					System.out.println("Data Socket closed");
-				}
-
-				else if (clientCommand.equals("getDesc")) {
-					Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-
-					System.out.println("Data Socket opened.");
-
-					DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-
-					String fileList = getFileList();
-					System.out.println(fileList);
-					dataOutToClient.writeBytes(fileList);
-					dataSocket.close();
-					System.out.println("Data Socket closed");
-				}
-
-				else if (clientCommand.equals("search")) {
-					String keyword = tokens.nextToken();
-					System.out.println(keyword);
-					Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-					System.out.println("Data Socket opened.");
-					DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-					String fileList = "";
-					if (keyword.equals("*")){
-						fileList = getFileList();
-					    } else{
-						fileList = getSearchList(keyword);
-					    }
-					dataOutToClient.writeBytes(fileList);
-					dataSocket.close();
-					System.out.println("Data Socket closed");
-				}
-
-				else if (clientCommand.equals("retr")) {
-					try {
-						String fileLine;
-						clientFileName = tokens.nextToken();
-						System.out.println(clientFileName);
-						Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-						System.out.println("Data Socket opened.");
-						File f = new File(clientFileName);
-
-						FileInputStream fileContents = new FileInputStream(f);
+			if (clientCommand.equals("list")) {
+			    System.out.println("Listing files...");
+			    System.out.println(port);
+			    Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
 
 
-						DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
-						System.out.println("retr socket open");
-						BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileContents));
-						while ((fileLine = fileReader.readLine()) != null) {
-							fileLine = (fileLine + "\n");
-							dataOutToClient.writeBytes(fileLine);
-						}
-						System.out.println(clientFileName);
+			    System.out.println("Data Socket opened.");
 
-						dataSocket.close();
-						fileContents.close();
-					}
-					catch (Exception e) {
-						System.out.println("Error opening file.");
-					}
-				} 
+			    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+			    // BufferedReader dataInFromClient = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
 
-				else if (clientCommand.equals("stor")){
+			    String fileList = getFiles();
 
-					String fileLine;
-					String modifiedSentence;
-					clientFileName = tokens.nextToken();
-					String desc = tokens.nextToken();
-					Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
-					System.out.println(clientFileName);
-					System.out.println(port);
-					FileWriter fw = new FileWriter(clientFileName);
+			    //Testing
+			    System.out.println(fileList);
 
-					DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
-					do {
-						modifiedSentence = inData.readLine();
-						if (modifiedSentence != null)
-						{
-							modifiedSentence = (modifiedSentence + "\n");
-							fw.write(modifiedSentence);
-						}
-					} while(modifiedSentence != null);
-					dbTable.register(clientFileName, desc, username, "" + connectionSocket.getInetAddress(), "" + port, speed);
-					fw.flush();
-					dataSocket.close();
-
-
-				}
-
-
-
-			} while (!clientCommand.equals("quit"));
-		}
-		catch(IOException ioEx)
-		{
-			ioEx.printStackTrace();
-		}
-		try
-		{
-			if (connectionSocket != null)
-			{
-				String inetadd = "" + connectionSocket.getInetAddress();
-				System.out.println("\n" + inetadd.substring(1) + " has disconnected");
-				connectionSocket.close();
+			    dataOutToClient.writeBytes(fileList);
+			    dataSocket.close();
+			    System.out.println("Data Socket closed");
 			}
-		}
-		catch (IOException ioEX)
-		{
-			System.out.println("Unable to disconnect.");
-		}
-	}
 
-	private String getFiles() {
-		ArrayList<NapFile> docs = dbTable.getAllFiles();
-		String files = "";
-		if (docs.size() == 0) {
-			return "No files available.";
-		} else {
-			for (int i=0; i<docs.size(); i++) {
-				files = files + docs.get(i).getFileName() + "~";
+			else if (clientCommand.equals("getDesc")) {
+			    Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+			    String user = inData.readLine();
+			    String userInfo[] = user.split(" ");
+			    username = userInfo[0];
+			    speed = userInfo[1];
+			    String clientFileName = userInfo[2];
+			    dataSocket.close();
+
+			    port += 2;
+			    
+			    dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+
+			    System.out.println("Data Socket opened.");
+
+			    String fileLine;
+			    String modifiedSentence;
+			    inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+			    // modifiedSentence = inData.readLine();
+			    // System.out.println(modifiedSentence);
+			    // String userInfo[] = modifiedSentence.split(" ");
+			    // username = userInfo[0];
+			    // speed = userInfo[1];
+			    // String clientFileName = userInfo[2];
+			    FileWriter fw = new FileWriter(clientFileName);
+			    System.out.println(clientFileName);
+
+			    do {
+				modifiedSentence = inData.readLine();
+				System.out.println(modifiedSentence);
+				if (modifiedSentence != null)
+				    {
+					modifiedSentence = (modifiedSentence + "\n");
+					fw.write(modifiedSentence);
+				    }
+			    } while(modifiedSentence != null);
+			    dbTable.register(clientFileName);
+			    fw.flush();
+
+			    dataSocket.close();
+			    port += 2;
+			    dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+
+			    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+
+			    String fileList = getFileList();
+			    System.out.println(fileList);
+			    dataOutToClient.writeBytes(fileList);
+			    dataSocket.close();
+			    System.out.println("Data Socket closed");
 			}
-			return files;
-		}
-	}
 
-	private String getFileList() {
-		ArrayList<NapFile> docs = dbTable.getAllFiles();
-		String files = "";
-		for (int i=0; i< docs.size(); i++) {
-			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
-		}
-		return files;
-	}
+			else if (clientCommand.equals("search")) {
+			    String keyword = tokens.nextToken();
+			    System.out.println(keyword);
+			    Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+			    System.out.println("Data Socket opened.");
+			    DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+			    String fileList = "";
+			    if (keyword.equals("*")){
+				fileList = getFileList();
+			    } else{
+				fileList = getSearchList(keyword);
+			    }
+			    dataOutToClient.writeBytes(fileList);
+			    dataSocket.close();
+			    System.out.println("Data Socket closed");
+			}
 
-	private String getSearchList(String keyword) {
-		ArrayList<NapFile> docs = dbTable.searchByDescription(keyword);
-		String files = "";
-		for (int i=0; i<docs.size(); i++) {
-			files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
-		}
-		return files;
+			else if (clientCommand.equals("retr")) {
+			    try {
+				String fileLine;
+				clientFileName = tokens.nextToken();
+				System.out.println(clientFileName);
+				Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+				System.out.println("Data Socket opened.");
+				File f = new File(clientFileName);
+
+				FileInputStream fileContents = new FileInputStream(f);
+
+
+				DataOutputStream dataOutToClient = new DataOutputStream(dataSocket.getOutputStream());
+				System.out.println("retr socket open");
+				BufferedReader fileReader = new BufferedReader(new InputStreamReader(fileContents));
+				while ((fileLine = fileReader.readLine()) != null) {
+				    fileLine = (fileLine + "\n");
+				    dataOutToClient.writeBytes(fileLine);
+				}
+				System.out.println(clientFileName);
+
+				dataSocket.close();
+				fileContents.close();
+			    }
+			    catch (Exception e) {
+				System.out.println("Error opening file.");
+			    }
+			} 
+
+			else if (clientCommand.equals("stor")){
+
+			    String fileLine;
+			    String modifiedSentence;
+			    clientFileName = tokens.nextToken();
+			    String desc = tokens.nextToken();
+			    Socket dataSocket = new Socket(connectionSocket.getInetAddress(), port);
+			    System.out.println(clientFileName);
+			    System.out.println(port);
+			    FileWriter fw = new FileWriter(clientFileName);
+
+			    DataInputStream inData = new DataInputStream(new BufferedInputStream(dataSocket.getInputStream()));
+			    do {
+				modifiedSentence = inData.readLine();
+				if (modifiedSentence != null)
+				    {
+					modifiedSentence = (modifiedSentence + "\n");
+					fw.write(modifiedSentence);
+				    }
+			    } while(modifiedSentence != null);
+			    //dbTable.register(clientFileName, desc, username, "" + connectionSocket.getInetAddress(), "" + port, speed);
+			    fw.flush();
+			    dataSocket.close();
+
+
+			}
+
+
+
+		    } while (!clientCommand.equals("quit"));
+	    }
+	catch(IOException ioEx)
+	    {
+		ioEx.printStackTrace();
+	    }
+	try
+	    {
+		if (connectionSocket != null)
+		    {
+			String inetadd = "" + connectionSocket.getInetAddress();
+			System.out.println("\n" + inetadd.substring(1) + " has disconnected");
+			connectionSocket.close();
+		    }
+	    }
+	catch (IOException ioEX)
+	    {
+		System.out.println("Unable to disconnect.");
+	    }
+    }
+
+    private String getFiles() {
+	ArrayList<NapFile> docs = dbTable.getAllFiles();
+	String files = "";
+	if (docs.size() == 0) {
+	    return "No files available.";
+	} else {
+	    for (int i=0; i<docs.size(); i++) {
+		files = files + docs.get(i).getFileName() + "~";
+	    }
+	    return files;
 	}
+    }
+
+    private String getFileList() {
+	ArrayList<NapFile> docs = dbTable.getAllFiles();
+	String files = "";
+	for (int i=0; i< docs.size(); i++) {
+	    files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
+	}
+	return files;
+    }
+
+    private String getSearchList(String keyword) {
+	ArrayList<NapFile> docs = dbTable.searchByDescription(keyword);
+	String files = "";
+	for (int i=0; i<docs.size(); i++) {
+	    files = files + docs.get(i).getConnSpeed() + " " + docs.get(i).getFileName() + " " + docs.get(i).getDescription() + "~";
+	}
+	return files;
+    }
 }
