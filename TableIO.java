@@ -143,6 +143,88 @@ public class TableIO {
     }
     
     /**
+     * Initializes the database as an ArrayList of NapFiles
+     * @param dbFileName
+     */
+    TableIO () {
+    	this.dbFileName = null;
+    	this.allFiles = new ArrayList<NapFile>();  
+    }
+    
+    /**
+     * Add all of a user's files based on an XML file containing all their info
+     */
+	public void register(String hostFiles) {
+		
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        TableIO tempTable = new TableIO(hostFiles);
+        
+		try {
+			for (int i = 0; i < tempTable.getAllFiles().size(); i++) {
+	            NapFile nf = tempTable.getAllFiles().get(i);
+				
+				DocumentBuilder builder = factory.newDocumentBuilder();
+	            Document doc = builder.parse(this.dbFileName);
+	            Node root = doc.getFirstChild();
+	            
+	            Element fileNode = doc.createElement("file");
+	            
+	            Element filenameNode = doc.createElement("name");
+	            filenameNode.appendChild(doc.createTextNode(nf.getFileName()));
+	            
+	            
+	            Element descriptionNode = doc.createElement("description");
+	            descriptionNode.appendChild(doc.createTextNode(nf.getDescription()));
+	            
+	            Element userNode = doc.createElement("user");
+	            
+	            Element usernameNode = doc.createElement("username");
+	            usernameNode.appendChild(doc.createTextNode(nf.getUsername()));
+	            userNode.appendChild(usernameNode);
+	            
+	            Element ipNode = doc.createElement("ip");
+	            ipNode.appendChild(doc.createTextNode(nf.getIp()));
+	            userNode.appendChild(ipNode);
+	            
+	            Element portNode = doc.createElement("port");
+	            portNode.appendChild(doc.createTextNode(nf.getPort()));
+	            userNode.appendChild(portNode);
+	            
+	            Element speedNode = doc.createElement("connSpeed");
+	            speedNode.appendChild(doc.createTextNode(nf.getConnSpeed()));
+	            userNode.appendChild(speedNode);
+	            
+	            fileNode.appendChild(filenameNode);
+	            fileNode.appendChild(descriptionNode);
+	            fileNode.appendChild(userNode);
+	            
+	            root.appendChild(fileNode);
+	            
+	            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+	    		Transformer transformer = transformerFactory.newTransformer();
+	    		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+	    		DOMSource source = new DOMSource(doc);
+	    		StreamResult result = new StreamResult(new File(this.getDbFileName()));
+	    		
+	    		transformer.transform(source, result);
+	    		
+	    		this.update();
+	
+	    		System.out.println("File saved!");
+	    		System.out.println("ArrayList updated!");
+			}
+        } catch (ParserConfigurationException pce) {
+    		pce.printStackTrace();
+    	} catch (TransformerException tfe) {
+    		tfe.printStackTrace();       
+	    } catch (SAXException e) {
+	        	e.printStackTrace();
+	    } catch (IOException e) {
+	        	e.printStackTrace();
+	    }
+    }
+    
+    /**
      * A method to help with debugging that prints every file in the database
      */
     public void printAllNodes() {
